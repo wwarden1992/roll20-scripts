@@ -1,0 +1,117 @@
+This contains the list of macros I created that I've used to interact with the scripts I wrote. Sadly I do not have a clean way to create these macros programmatically or anything like that, so you'll just have to copy them in manually.
+
+The lines with a "#" are the names of the macros (the names themselves don't have the "#" in my own copies though), while the lines that immediately follow are the actual macro text, then an explanation of what the macro does on the following line
+
+#ADD-MINUTE-TO-TIMER
+!timers add
+Explanation: This macro interacts with the timers that are used to regulate GM and Player timers when in initiative (see START-TIMER). Whichever timer is actively ticking down, a minute will get added to it. If the timer is halted, you probably won't see any update until it starts ticking again.
+I recommend using this if a player is running out of time on their turn for reasons that aren't their fault (e.g. you have to look something up about your own enemies, they take legendary actions, etc...)
+
+#Attack-This-Token
+!hit '@{selected|token_name}' ?{How much damage did you deal to this token?} ?{Was the damage magical or nonmagical?|Magical|Nonmagical} ?{What type of sound effect do you want?|None|Battleaxe|Blowgun|Club|Dagger|Dart|Flail|Glaive|Greataxe|Greatclub|Greatsword|Halberd|Handaxe|Hand Crossbow|Heavy Crossbow|Javelin|Lance|Longbow|Longsword|Light Crossbow|Light Hammer|Mace|Maul|Morningstar|Net|Pike|Rapier|Quarterstaff|Revolver|Rifle|Scimitar|Shortbow|Shortsword|Shotgun|Sickle|Sling|Spear|Trident|Unarmed|Warhammer|War Pick|Whip}
+Explanation: This macro is to be used for weapon strikes. It prompts you to select a token (by clicking on it), asks you to tell how much damage was rolled, if it was magical/nonmagical, and then to select the weapon type. 
+The weapon type selection will automatically decide if the damage was bludgeoning, piercing, or slashing, and couple that with the magical/non-magical input to decide on resistances, immunities, or vulnerabilities (selecting 'None' will result in just subtracting the exact damage value from the target's HP). 
+It does NOT decide whether the hit is successful or not, so only use it once a hit is confirmed.
+It also will attempt to play a sound effect from your library whose name matches the weapon selection (i.e. if you choose 'Club', it'll try to play a sound effect called 'club').
+
+#BOX-OF-DOOM
+!boxofdoom
+Explanation: The first time you execute this, it for a sound from your sounds library titled 'boxofdoom' and begins playing it on a loop. The next time you execute it, it stops that sound, and plays another sound called 'boxofdoomend'. If you have not provided these sounds in your library, nothing happens
+
+#Concentrate
+!concentrate `@{selected|token_name}` `?{What is this token concentrating on?}` `?{What is the duration of this spell (in rounds)?}`
+Explanation: prompts you to click a token, then applies a marker named 'concentration' from your own markers library to the token, and puts a badge on it based on your answer to "What is this token concentrating on", followed by a slash, followed by your answer to the spells duration in rounds. 
+So if I answer "Haste" and "10" to the two questions, the badge on the concentration marker will be "Haste/10" (at the end of this token's next turn, the badge will update to "Haste/9", and so on until it reaches 0 and the marker is auto-removed)
+
+#Damage-Lookup
+!dmglookup @{selected|token_name}
+Explanation: prompts you to click on a token, then tells you in the chat how much damage that token has received thus far.
+
+#Do-Basic-Attack
+!basicattack `@{selected|token_name}` `@{target|token_name}`
+Explanation: Prompts you to click an NPC token, then target token. If stats are defined for this token in 'enemytemplates.js', it'll automatically roll the attack, decide if it hits or not, and deduct HP from the target accordingly
+
+#Draw-AoE
+!draw ?{What shape?|Circle|Square|Cone|Line} ?{How many ft?} ?{If you selected 'Line', how many feet wide is it (you may leave this blank if you selected something else)}
+Explanation: Draws an AoE marker based on the input provided. You can use it to measure whether you can fit a certain group of enemies inside an AoE bubble. 
+If you use a spell command whose AoE shape/size matches this marker, it'll automatically execute the spell in the space of the marker, roll saves, and apply damage/status conditions to anything affected within that space (to the extent it can, based on data from enemytemplates.js)
+NOTE: players have reported that they are unable to position these AOE markers themselves, so it is on the GM (for now at least) to make measurements with these markers
+
+#Find-Token
+!find
+Explanation: Prints a list of player tokens in chat, and players can click on those names to trigger the camera to center on that token and ping it. When a GM uses this command, the list in chat also shows NPC tokens.
+
+#Get-Imgsrc
+!imgsrc @{target|Target|token_id}
+Explanation: Prompts you to click on a token, and then prints the image source for that token IN THE API SANDBOX LOGS. Useful if you're trying to get the imgsrc for setting up enemy statistics in the enemytemplates.js file, since the image source the main way the scripts can tell which token is which type of enemy
+
+#Marker-Lookup
+!markers @{selected|token_name}
+Explanation: Prompts you to click on a token, then tells you what the various markers on it mean, in case you're not sure what's what. Descriptions are based on information in markers.js (pretty-prints the first argument used to construct each Marker object)
+
+#Roll-Enemy-Save
+!enemysave `@{selected|token_name}` `?{What stat?|STR|DEX|CON|INT|WIS|CHA}` `?{What's the DC?}` `?{Are they rolling with advantage or disadvantage?|Neither|Advantage|Disadvantage|Both}` `?{Is the effect magical?|Yes|No}`
+Explanation: Prompts you to click on a token, takes in parameters, and then rolls a save for it based on the inputs you give it and whatever markers are present on it (examples: it'll factor in adv/disadv markers, bane, bless, paralyzed, and pretty much any other status condition or spell-related marker that's been programmed in)
+If you have 'magicResistance': true on an enemy template, it'll also automatically roll advantage if you tell it the effect prompting the save is magical.
+
+#Roll-Initiative
+!initiative @{selected|token_name}
+Explanation: Rolls Initiative for the token you click on. Fine for late entrants to the initiave order, though I personally prefer to just use Start-Initiative and roll initiative for all enemies at once
+
+#SET-AD-HOC-TIMER
+!timers special ?{How much time do you want on the clock? (Please insert your value in seconds or in mm:ss format)}
+Explanation: Creates a countdown timer on the page that counts down based on the input you give it. The timer deletes itself when the countdown ends, and prints "TIMER EXPIRED!" in chat. Only one countdown timer is supported at a time.
+If you need to pause/resume this timer mid-countdown, use the TOGGLE-AD-HOC-TIMER macro
+
+#SET-DM-ROUND-TIME
+!timers dmTime ?{How much time should the DM get for each round? (Please insert your value in seconds or in mm:ss format)}
+Explanation: You decide how much time you want to have for all your tokens in the round.
+If this is not used before starting combat, a default value of 15 minutes is assumed.
+If you don't think a DM should be beholden to the same time limits that players might have, then just go with something like 99:59 for the input.
+
+#SPEND-FORTUNE-TOKEN
+!fortunetoken fortune
+Explanation: Lets players spend a fortune token and updates the visual tracker on the bottom of your map (assuming you want to use fortune tokens in your campaign. It's a house rule that was borrowed from... I think Zweihander?)
+
+#SPEND-MISFORTUNE-TOKEN
+!fortunetoken misfortune
+Explanation: Lets the GM spend a misfortune token and update the visual tracker on the bottom of your map
+
+#START TIMER
+!timers on
+Explanation: Starts the combat timers. Players get 4 minutes to complete their turn, get a 1 minute warning, and then the turn automatically advances when the timer hits 0. If the DM's timer hits 0, it auto-advances past all enemy token turns
+
+#STOP TIMER
+!timers off
+Explanation: Stops the combat timers.
+
+#Set-Height-Above-Ground
+!z-axis `@{selected|token_name}` `?{How high off the ground is this token (in feet)?}`
+Explanation: Puts a marker on the selected token to indicate that it is flying. A badge appears on the marker indicating how many feet off the ground it is.
+
+#Spellbook
+!spell
+Explanation: Prints a list of all the spells programmed into the spelltemplates.js file into chat (for the DM) or just the spells that players have added to their character sheet (for players).
+When a player (or DM) clicks on that spell in chat, it will prompt them for whatever info that spell needs to execute (prompts defined in spelltemplates.js, spell behavior in spell7.js)
+
+#Start-Initiative
+!start-initiative
+Explanation: Auto-rolls initiative for all NPCs on the map for which stats are provided, adds placeholders for player tokens, and adds a placeholder for lair actions (assuming the lair action icon is on the map; gets auto-created by another script whenever you add a map)
+
+#TOGGLE-AD-HOC-TIMER
+!timers toggle_special
+Explanation: If the ad-hoc timer created by SET-AD-HOC-TIMER is currently running, you can pause/resume it with this macro.
+
+#UPDATE-UNIVERSE-CLOCK
+!updateclock ?{What is the date/time in the universe right now?}
+Explanation: The in-universe date is tracked in a document called 'In-Universe Date' (the scripts will create it if the document doesn't exist when you use this macro). 
+It is expected that the day of the month follows the syntax "___ay MM/DD HH (AM/PM) YYYY AR" (but without the quotes, e.g. Sunday 7/10 12 AM, 23 AR). 
+The date gets printed in the top-right of the map in red lettering.
+If you can't remember the syntax (I sure don't) or you don't want to do the math to figure out what the date is after X amount of time (don't want to do that either), you can just input a number followed by y, m, d, or h (for year, month, day, or hour respectively), and it'll increment the date by that amount 
+Notes about the clock: 'AR' is the reckoning system my game used. You can change it in util.js if you like (find the line that says "newTime = `${weekday} ${month}/${day} ${displayHour} ${displayAmPm}, ${year} AR`;" and replace the 'AR' with your choice of year marker). 
+Moreover, it uses a 12 month calendar with 30 days each month. So if you want true to life, you will have to do some coding to get it to account for all the months that have 31 days, and February.
+
+#Update-Money
+!money ?{Are you overwriting your current GP, or are you adding/subtracting from it?|Adding/Subtracting|Overwriting} ?{What is the amount?}
+Explanation: Players use this to update their money totals in the money tracker that appears in the top-left of the map. Selecting "Adding/Subtracting" will do the math for them if they just got/spent a certain amount of gold. If you're subtracting, just put in a negative number for the amount.
+If they know what their new total is but don't know how much exactly they got/spent, then that's what the 'Overwriting' function is for.
