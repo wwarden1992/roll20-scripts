@@ -15,24 +15,24 @@ AoE hazard sources are either a specific token (such as in the case of a moonbea
 
 
 **createAoeHazard(obj, shape, triggers, params, callback, exitCallback, storeInMemory)**
-obj (Roll20 Object)- The Roll20 Object that is the source of the AoE. This can be a graphic, or a pathv2
-shape (string)- Acceptable values are "circle", "cone", and "rectangle". Shapes other than this (e.g. if you drew a random polygon) are not supported
-triggers (string array)- the conditions where the string effects are triggered. It is recommended that you use the consts defined at the top of this file as values for the array rather than hardcoding the strings yourself. The consts are listed as follows: 
- - START_OF_TURN (trigger if a token is within the AoE at the start of its turn)
- - ENTERS_AREA (trigger when the token enters the AoE on the first time during its turn; prevents triggering from involuntary movement, and prevents you from pinging yourself 'playing the hokey pokey' with the AoE)
- - END_OF_TURN (triger if the token is within the AoE at the end of its turn)
- - TRAP (trigger any time a token moves within the AoE, regardless of turn. Useful for when players move their tokens around a dungeon map outside of initiative
- - ON_CAST (trigger as the AoE comes into existence)
- - HAZARD_MOVED (trigger if the AoE is moved. good for something like ramming a creature with a flaming sphere)
-params (object) - typically if you're creating the AoE as part of a spell, you'll be able to just get away with using the 'params' that are already kind of baked into the spell script's architecture. It's smart enough to infer the values you need. Otherwise, your params object should look like this:
+- obj (Roll20 Object)- The Roll20 Object that is the source of the AoE. This can be a graphic, or a pathv2
+- shape (string)- Acceptable values are "circle", "cone", and "rectangle". Shapes other than this (e.g. if you drew a random polygon) are not supported
+- triggers (string array)- the conditions where the string effects are triggered. It is recommended that you use the consts defined at the top of this file as values for the array rather than hardcoding the strings yourself. The consts are listed as follows: 
+  - START_OF_TURN (trigger if a token is within the AoE at the start of its turn)
+  - ENTERS_AREA (trigger when the token enters the AoE on the first time during its turn; prevents triggering from involuntary movement, and prevents you from pinging yourself 'playing the hokey pokey' with the AoE)
+  - END_OF_TURN (triger if the token is within the AoE at the end of its turn)
+  - TRAP (trigger any time a token moves within the AoE, regardless of turn. Useful for when players move their tokens around a dungeon map outside of initiative
+  - ON_CAST (trigger as the AoE comes into existence)
+  - HAZARD_MOVED (trigger if the AoE is moved. good for something like ramming a creature with a flaming sphere)
+- params (object) - typically if you're creating the AoE as part of a spell, you'll be able to just get away with using the 'params' that are already kind of baked into the spell script's architecture. It's smart enough to infer the values you need. Otherwise, your params object should look like this:
   { 
     "caster": The name of the token who's spell or ability created the AoE hazard (can be omitted if not applicable),
     "dc": The DC for a saving throw prompted by this AoE when triggered (can be omitted if not applicable),
     "level": The level of the spell cast that created this AoE, used for things like scaling damage effects (can be omitted if not applicable)
   }
-callback (function)- A function that specifies what happens when the AoE gets triggered.
-exitCallback (function, optional)- A function that gets called whenever a creature exits the AoE. Most AoEs do not need an exitCallback, but for some exceptions like Silence where we would want to remove a marker denoting it's silenced/deafened status, it's helpful.
-storeInMemory (boolean, optional)- if you don't want the AoE hazard to be remembered by the Hazard Tracker doc, set this to false. Otherwise it's assumed to be true. Useful to set false when you've scripted traps into your map, and you don't want to create duplicates each time you restart the scripts.
+- callback (function)- A function that specifies what happens when the AoE gets triggered.
+- exitCallback (function, optional)- A function that gets called whenever a creature exits the AoE. Most AoEs do not need an exitCallback, but for some exceptions like Silence where we would want to remove a marker denoting it's silenced/deafened status, it's helpful.
+- storeInMemory (boolean, optional)- if you don't want the AoE hazard to be remembered by the Hazard Tracker doc, set this to false. Otherwise it's assumed to be true. Useful to set false when you've scripted traps into your map, and you don't want to create duplicates each time you restart the scripts.
 
 
 
@@ -53,14 +53,14 @@ Things you should know as a user:
 In general, if you're trying to make new stuff, the most useful function to know is the following:
 
 **getAttribute(character, attrName, valueType)**
-character (string)- The name of the character as it appears on the character sheet
-attrName (string)- The stat you want to look up information about
- - can be an ability score like "strength", "intelligence", etc.
- - if you want the modifier instead of the raw ability score, use "strength_mod", "intelligence_mod", etc.
- - if you want the save modifier, use "strength_save_bonus", etc.
- - for skills, use "perception_bonus", "animal_handling_bonus", etc.
- - other: "hp", "ac", "pb", "spellcasting_ability", "spell_save_dc", "spell_attack_bonus", "level"
-valueType (string, optional) - you can provide a value of "max" for this if you want to get an HP max instead of current HP from the character sheet.
+- character (string)- The name of the character as it appears on the character sheet
+- attrName (string)- The stat you want to look up information about
+  - can be an ability score like "strength", "intelligence", etc.
+  - if you want the modifier instead of the raw ability score, use "strength_mod", "intelligence_mod", etc.
+  - if you want the save modifier, use "strength_save_bonus", etc.
+  - for skills, use "perception_bonus", "animal_handling_bonus", etc.
+  - other: "hp", "ac", "pb", "spellcasting_ability", "spell_save_dc", "spell_attack_bonus", "level"
+- valueType (string, optional) - you can provide a value of "max" for this if you want to get an HP max instead of current HP from the character sheet.
 
 
 
@@ -185,13 +185,13 @@ Notes about checking if an enemy exists within an AoE: it assumes that tokens ar
 The only function in here that you might like to use outside of this library is this one:
 
 **function drawShape(playerid, shape, length, width, type, color, fill)**
-playerid (string, DEPRECATED)- don't worry about putting a value here. The program overwrites it to 'all'
-shape (string) - acceptable values are "cone", "square", "circle", or "line" (which actually draws a rectangle)
-length (number) - Whatever value (in feet) a spell or ability description would give, that's what you want to provide. For a sphere or cylinder with a 20 foot radius, use 20. For a 15 foot cone, use 15. For a 30 foot cube, use 30. And so on
-width (number) - optional for all shapes except "line". Gives the width of a rectangle. If you're drawing this shape for an ability that travels in a line but doesn't have a specified width (e.g. catapult), I just like to use something small for this value like 1
-type (string, optional) - if you're using this to measure something other than an aoe for a spell or ability, put some value here (not 'aoe'). Otherwise, it'll assume the object being drawn is going to be used for spell cast and will make a microadjustment to the line thickness to signal it can be used by a spell. 
-color (string, optional) - gives the color of the line drawing the shape. Use "#RRGGBB" format. If no value is provided, "#123456" is used (looks kinda dark blue)
-fill (string, optional) - fills in the shape with the given color. Use "#RRGGBB" format. If no value is provided, the shape is not filled in (e.g. transparent fill)
+- playerid (string, DEPRECATED)- don't worry about putting a value here. The program overwrites it to 'all'
+- shape (string) - acceptable values are "cone", "square", "circle", or "line" (which actually draws a rectangle)
+- length (number) - Whatever value (in feet) a spell or ability description would give, that's what you want to provide. For a sphere or cylinder with a 20 foot radius, use 20. For a 15 foot cone, use 15. For a 30 foot cube, use 30. And so on
+- width (number) - optional for all shapes except "line". Gives the width of a rectangle. If you're drawing this shape for an ability that travels in a line but doesn't have a specified width (e.g. catapult), I just like to use something small for this value like 1
+- type (string, optional) - if you're using this to measure something other than an aoe for a spell or ability, put some value here (not 'aoe'). Otherwise, it'll assume the object being drawn is going to be used for spell cast and will make a microadjustment to the line thickness to signal it can be used by a spell. 
+- color (string, optional) - gives the color of the line drawing the shape. Use "#RRGGBB" format. If no value is provided, "#123456" is used (looks kinda dark blue)
+- fill (string, optional) - fills in the shape with the given color. Use "#RRGGBB" format. If no value is provided, the shape is not filled in (e.g. transparent fill)
 
 
 
