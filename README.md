@@ -140,6 +140,7 @@ I check my output in the script logs, and see my output there
   - 'reach': you can provide a number (in feet) to expand the range of your enemy's attacks. Used when calculating if an enemy is within melee attack range.
   - 'initiative_bonus': if your enemy has alert or something else that gives it a bonus to initiative rolls beyond its dex modifier, you can add that bonus as a number here.
   - 'proficient_saves': specify an array like \['con', 'str'\] to list the saving throws the enemy has proficiency in, and the bonus will automatically be applied for those types of saving throws
+  - 'casterLevel': if your enemy casts cantrips and you need to calculate cantrip scaling for them, this parameter basically means 'scale the cantrip as though they were this level'
   - 'rechargeDie': if you want to automate rolling for ability recharges, you can specify a value like '1d6', '1d10', etc, and that's what'll be used when you call rollToRecharge() for the enemy (see enemy.js)
   - 'rechargeNumber': if you want to automate rolling for ability recharges, you can specify a value like '4', and that's what the enemy will have to meet or beat when you call rollToRecharge() for the enemy (see enemy.js)
   - 'rechargeAbilityReady': give it a value of true or false. This is used mostly to track whether the enemy has its recharge ability available. Set it to true if it comes into combat with the ability ready, otherwise set it to false.
@@ -182,9 +183,9 @@ NOTE: I've tricked myself into thinking the fortune/misfortune tokens aren't wor
 **GEOMETRY.JS**
 Abandon all hope ye who enter here. This contains the logic for detecting whether enemies fall within a certain AOE range, and it is messy and hard to read. But it works.
 Notes about checking if an enemy exists within an AoE: it assumes that tokens are square, and even the tiniest bit of overlap is enough to declare a hit. If you'd rather the tokens be treated as circles within the grid square(s) they occupy, set the var somewhere within this file called 'allowAnyOverlap' to false.
-The only function in here that you might like to use outside of this library is this one:
+The functions within here that you might want to use elsewhere are thankfully few:
 
-**function drawShape(playerid, shape, length, width, type, color, fill)**
+**drawShape(playerid, shape, length, width, type, color, fill)**
 - playerid (string, DEPRECATED)- don't worry about putting a value here. The program overwrites it to 'all'
 - shape (string)- acceptable values are "cone", "square", "circle", or "line" (which actually draws a rectangle)
 - length (number)- Whatever value (in feet) a spell or ability description would give, that's what you want to provide. For a sphere or cylinder with a 20 foot radius, use 20. For a 15 foot cone, use 15. For a 30 foot cube, use 30. And so on
@@ -193,6 +194,27 @@ The only function in here that you might like to use outside of this library is 
 - color (string, optional)- gives the color of the line drawing the shape. Use "#RRGGBB" format. If no value is provided, "#123456" is used (looks kinda dark blue)
 - fill (string, optional)- fills in the shape with the given color. Use "#RRGGBB" format. If no value is provided, the shape is not filled in (e.g. transparent fill)
 
+**liesWithinCircle(circle, target)**
+- circle (object)- an object that represents all the information we need about the circle. The values needed are as follows
+  - x (number) - the x-coordinate of the circle's center
+  - y (number) - the y-coordinate of the circle's center
+  - r (number) - the circle's radius (in px)
+- target (string or object)- the name of the token (or the token itself) we're checking to see if it's within the circle
+
+**liesWithinCone(cone, target, caster)**
+- cone (object)- an object that represents all the information we need about the cone. The values needed are as follows
+  - x (number) - the x-coordinate of the cone's origin
+  - y (number) - the y-coordinate of the cone's origin
+  - r (number) - the cone's length (in px)
+  - angle (number) - the angle of line bisecting the cone reckoned by the unit circle (in radians)
+- target (string or object)- the name of the token (or the token itself) we're checking to see if it's within the cone
+- caster (string or object)- the name of the caster, or the caster's token itself. Sometimes it can be a bit murky whether the caster is within their own cone, so if you want to make sure the caster is never within a cone of their own creation, you can specify its name here
+
+**liesWithinRectangle(rectangle, target)** (good for squares too)
+- rectangle (object)- an object that represents all the information we need about the rectangle. The values needed are as follows
+  - x1, x2, x3, x4 (numbers)- the x-coordinates of the corners of the rectangle
+  - y1, y2, y3, y4 (numbers)- the y-coordinates of the corners of the rectangle. x1 goes with y1, x2 goes with y2, and so on...
+ 
 
 
 **GOLDTRACKER.JS**
@@ -291,4 +313,90 @@ A handy little script that automatically creates tokens for all active character
 
 
 **SPELL7.JS**
-The seventh iteration of my spell execution script. TODO...
+The seventh iteration of my spell execution script. The script has a var called 'spellbook', where we define a list of spell objects. The spell constructor looks like this:
+**constructor(name, minLevel, callback, soundFx)**
+- name (string)- the name of the spell, without spaces. The name should match a key in spelltemplates.js that contains the list of params you need in order to cast that spell (see spelltemplates.js for more information)
+- minLevel (number)- the lowest level the spell can be cast at. For cantrips, this value is 0
+- callback (function)- the function that actually does the spell after collecting the information from the user as defined in spelltemplates.js. Each callback function you write should have a single argument of 'params' in its definition
+- soundFx (string, optional)- the name of the sound from your game library that you want to play when this spell happens. If no value is provided, no sound happens.
+
+The script is smart enough to look at the player who's using this macro, cross reference it with the list of spells on their active character's character sheet, and print filtered list of spells from 'spellbook' for them to select from. When they click on an option, they are prompted for any relevant information (e.g. who are they targetting? how much damage did they roll?), and the spell executes. Parameters such as save DC or cantrip scaling are calculated automatically from reading the character sheet.
+Spells that require damage values can also auto roll damage for players if they wish, just by leaving the damage fields blank.
+
+The following are a list of helper functions you may want to use when writing your own spell definitions and callbacks
+
+**function rollTokenSave(target, params)**- if the spell prompts a token to roll a saving throw, use this. It'll roll saves for enemies automatically (if stats are defined in enemytemplates.js), while just prompting players to make rolls themselves
+- target (string or object)- the name of the target that must roll the save, or the token representing that target.
+- params (object) - your spell callbacks are always assumed to have a params object, you can just pass that in here. maybe add a couple values to it in the spell callback if necessary. but definitely use params from the callback as the basis for this argument in rollTokenSave
+
+**halfDamage(dmg) and noDamage(dmg)**- used in functions that require saving throws and does exactly what you'd expect them to.
+- dmg (number)- the damage that's being halved (or reduced to 0)
+
+**cantripScale(caster)**- returns 1, 2, 3, or 4, based on the caster's level (returns 1 for levels 1-4, 2 for levels 5-10, 3 for levels 11-16, 4 for levels 17+)
+- caster (string or object)- the name of the caster or the token representing them
+
+**autorollIfNeeded(params, dice, paramName)**- rolls dice for the params named by paramName if needed
+- params (object)- the list of parameters to check against when deciding if we need to autoroll. It's gonna be the same params that are from your spell callback's definition 99% of the time.
+- dice (string)- the amount of dice you want to roll. Should be in "XdY+Z" format
+- paramName (string)- the parameter within params that might need a value rolled for it. If a value already exists within params, just return that value. Otherwise, do the roll.
+
+**circleAoe(params, radius, fxType, delay, callback)**- if your spell creates a circle AoE (e.g. fireball), this method can be used to check who's in the AoE, make them roll saves, and apply whatever effects the spell's supposed to on success/fail. Requires an AoE marker of the appropriate size and shape to be drawn, which it consums on execution (see the Draw-AoE macro in macros.txt). If one doesn't exist, it puts one on the screen for you and prompts you to place it, then fire the spell again. NOTE: before calling circleAoE in your spell callbacks, you will probably want to specify a few extra values in params. Things like 'stat' (ability score the saving throw needs), 'dmgType' (self explanatory), and onSave (function that defines what if anything should happen when a target succeeds on its saving throw).
+- params (object)- again, just use the params used from your spell callback function's args.
+- radius (number)- the radius of the aoe effect in feet
+- fxType (string, optional)- the fx you want the spell to create. If it's one of roll20's baked-in fxs, you can just pass the simple name in. Otherwise, you have to get the actual id of the fx and pass it in. (I should've added a helper function for that. missed opportunity)
+- delay (number, optional)- if you want to delay the effect by some number of milliseconds, specify the value here. By default, a 400msec delay is added because that seems to be what best syncs the audio with the video (at least for me), so a 400msec delay will always be added to whatever value you specify.
+- callback (function, optional)- if something's actually supposed to happen as a result of being within this AoE, the callback you provide defines the behavior. "damageToken" is an obvious choice for such a callback, but sometimes you need to write your own if behavior is more complex (e.g. you damage the token and apply a marker to it)
+Simple example of this in action with the spell fireball:
+<img width="601" height="107" alt="image" src="https://github.com/user-attachments/assets/db6290d5-95cb-49ff-b0ed-a0ab519768d7" />
+
+**effectOnToken(targetName, fxType, delay)**- makes an fx appear on a target
+- targetName (string or object)- the name of the token (or the token itself) you want an FX to appear on
+- fxType (string)- the id of the fx, or the name of the fx if it's one of roll20's baked in fxs
+- delay (number, optional)- if you want to delay the effect by some number of milliseconds, specify the value here. By default, a 400msec delay is added because that seems to be what best syncs the audio with the video (at least for me), so a 400msec delay will always be added to whatever value you specify.
+
+**coneAoe(params, radius, color, callback)**- if your spell creates a cone AoE (e.g. cone of cold), this method can be used to check who's in the AoE, make them roll saves, and apply whatever effects the spell's supposed to on success/fail. Requires an AoE marker of the appropriate size and shape to be drawn, which it consums on execution (see the Draw-AoE macro in macros.txt). If one doesn't exist, it puts one on the screen for you and prompts you to place it, then fire the spell again. NOTE: before calling coneAoE in your spell callbacks, you will probably want to specify a few extra values in params. Things like 'stat' (ability score the saving throw needs), 'dmgType' (self explanatory), and onSave (function that defines what if anything should happen when a target succeeds on its saving throw).
+- params (object)- again, just use the params used from your spell callback function's args.
+- radius (number)- the length of the cone in feet
+- color (string)- the 'color' of the fx you want to create. Specifically, it creates an fx of 'breath-' + color. Acceptable values for this are the ones presented below:
+<img width="261" height="263" alt="image" src="https://github.com/user-attachments/assets/fd61fc61-88a5-455e-b350-dbf4c480056e" />
+- callback (function, optional)- if something's actually supposed to happen as a result of being within this AoE, the callback you provide defines the behavior. "damageToken" is an obvious choice for such a callback, but sometimes you need to write your own if behavior is more complex (e.g. you damage the token and apply a marker to it)
+Simple example of this in action with the spell burning hands:
+<img width="554" height="104" alt="image" src="https://github.com/user-attachments/assets/2d1a4191-69a3-4ac9-83e2-dccc55e1a10d" />
+
+**shootRay(params, radius, color, onImpact, onImpactSound)**- creates an fx and fires it in the direction based on the specified inputs. NOTE: it ALWAYS wants to fire in the wrong direction unless you're firing perfectly horizontally or vertically. There's nothing I can do about it; seems it's on Roll20's side. No workarounds I've tried have actually worked. Hopefully they fix it some day, but as of 3/27/26, no such luck.
+- params (object)- use the params used from your spell callback function's args. You could also add a 'theta' parameter to this if you're firing off in a direction instead of at a specific target, but... probably not worth it.
+- radius (number, optional)- if you aren't providing a params.target and are instead providing a params.theta, then this is the distance in feet that you want your ray to shoot. If you ARE providing a params.target, this value is optional
+- onImpact (string, optional)- if you want some sort of effect to happen on the target at the end of the ray (say for example, you want a burst effect), you can specify it here. it should either be one of roll20's baked-in fxs, or the id of your own custom fx
+- onImpactSound (string, optional)- if you want some sort of sound to play to coincide with the fx striking your target, you can specify the name of the sound from your campaign library here
+
+**cubeAoe(params,side,fxType,callback)**- if your spell creates a cube AoE (e.g. cone of cold), this method can be used to check who's in the AoE, make them roll saves, and apply whatever effects the spell's supposed to on success/fail. Requires an AoE marker of the appropriate size and shape to be drawn, which it consums on execution (see the Draw-AoE macro in macros.txt). If one doesn't exist, it puts one on the screen for you and prompts you to place it, then fire the spell again. NOTE: before calling cubeAoE in your spell callbacks, you will probably want to specify a few extra values in params. Things like 'stat' (ability score the saving throw needs), 'dmgType' (self explanatory), and onSave (function that defines what if anything should happen when a target succeeds on its saving throw).
+- params (object)- again, just use the params used from your spell callback function's args.
+- side (number)- the side length of the aoe effect in feet
+- fxType (string, optional)- the fx you want the spell to create. If it's one of roll20's baked-in fxs, you can just pass the simple name in. Otherwise, you have to get the actual id of the fx and pass it in. (I should've added a helper function for that. missed opportunity)
+- callback (function, optional)- if something's actually supposed to happen as a result of being within this AoE, the callback you provide defines the behavior. "damageToken" is an obvious choice for such a callback, but sometimes you need to write your own if behavior is more complex (e.g. you damage the token and apply a marker to it)
+Here's an example of this in action with the spell thunderwave:
+<img width="630" height="382" alt="image" src="https://github.com/user-attachments/assets/f437d9c6-c997-4e5c-bad1-2e9566582283" />
+
+**summonSomething(summonName, img, w, h, params)**- creates a token that you control.
+- summonName (string)- the name you want to appear on the token
+- img (string)- the full url of the image for the token. This must be something you've uploaded to roll20. The Get-Imgsrc macro can help you get the url for a token on the map (see macros.txt)
+- w (number)- the width of the token in squares (e.g. 1 for medium, 2 for large, .5 for small)
+- h (number)- the height of the token in squares (same as above)
+- params (object)- you can pass params straight in from the function's callback, but really you only need a value for "caster" within this object
+Here's an example where this function is used for creating a mage hand
+<img width="650" height="77" alt="image" src="https://github.com/user-attachments/assets/a23bd765-0dcb-4d73-89a0-8f37ba859338" />
+
+
+**damageToken(t, params)**- applies damage to a token factoring in the results of saving throws (if necessary), abilities such as evasion (for dex saves), resistances, vulnerabilities, and immunities.
+- t (string or object)- the name of the token taking damage or the token itself
+- params (object)- just pass it in from the function's callback. If a saving throw is part of the calculations, add the result of the saving throw to params as params.saved
+Here's an example using hellish rebuke
+<img width="789" height="152" alt="image" src="https://github.com/user-attachments/assets/df2a7915-2971-40da-b055-3e0dcb2b1cdc" />
+
+
+
+**SPELLTEMPLATES.JS**
+Here you list the information that the user will need to provide in order for your spell functions to work. In order to make the prompting all nice and neat, it follows Roll20 Roll Query syntax (see https://wiki.roll20.net/Roll_Query), with a key modification. When you need to collect multiple params whose names are going to be similar, you can use square brackets ([]) to inject math into it and allow it to repeat. For example, the spell Bless lets you bless a number of targets equal to 2 + the level cast (3 at level 1, 4 at level 2, 5 at level 3, and so on). Rather than just having separate templates for bless at each spell level, I wrote this:
+<img width="402" height="18" alt="image" src="https://github.com/user-attachments/assets/ea5e0e15-c8d6-4c8a-a31c-9bd454d17aa9" />
+and spell7.js will know that I need to collect (2 + the level cast) ally values (storing them as ally1, ally2, ally3...)
+
