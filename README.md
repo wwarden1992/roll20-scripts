@@ -1,6 +1,10 @@
-<img width="1152" height="217" alt="image" src="https://github.com/user-attachments/assets/d7c0da6b-bc58-47d7-b869-3fab57b8aba5" />Contains all the scripts I wrote for the campaign I ran (excluding ad-hoc files made for certain maps or puzzles).
+This repo contains all the scripts I wrote for the campaign I ran (excluding ad-hoc files made for certain maps or puzzles).
 
 Here is an explanation of all the files I wrote and the important functions if you want to build off it. You will see references to "Roll20 Objects" throughout this document. Please note that this refers to a specific type of structure as outlined in this webpage: https://wiki.roll20.net/API:Objects
+
+GENERAL CONSIDERATIONS:
+I use bar3_value (the circle that's red by default) for HP, bar2_value (the circle that's blue by default) for temp HP, and bar1_value (the circle that's green by default) for AC. If you have bar4_value enabled in your settings (the circle that's yellow be default), I use that for speed.
+If you don't use the same bars(/circles) for your values, then your mileage with these scripts will vary wildly.
 
 
 
@@ -173,6 +177,8 @@ If you want to play with fortune tokens, this provides a means to do that. Inter
 The quantity of fortune tokens is maintained in a document called "Fortune Token Tracking" (it gets created if it doesn't currently exist). This is used so the system can "remember" the balance of fortune tokens after a script reset, and also to reset the fortune tokens to the starting balance if it's the next session (i.e. hasn't been updated in 24 hours)
 NOTE: I've tricked myself into thinking the fortune/misfortune tokens aren't working, by spending a misfortune token while looking at a different map. Please note that when you spend a fortune token, it only updates on the map the party is on, and won't update on other maps until that other map becomes the party map.
 
+
+
 **GEOMETRY.JS**
 Abandon all hope ye who enter here. This contains the logic for detecting whether enemies fall within a certain AOE range, and it is messy and hard to read. But it works.
 Notes about checking if an enemy exists within an AoE: it assumes that tokens are square, and even the tiniest bit of overlap is enough to declare a hit. If you'd rather the tokens be treated as circles within the grid square(s) they occupy, set the var somewhere within this file called 'allowAnyOverlap' to false.
@@ -193,3 +199,20 @@ fill (string, optional) - fills in the shape with the given color. Use "#RRGGBB"
 Puts a gold tracker at the top-left corner of the map, and tracks how much money each player has in a place everyone can easily see. If everyone is tracking their gold in something like a google sheet, maybe this doesn't have a ton of use, and possibly would even be annoying for covering part of the map, but it's nice to have this quick reference available in many cases.
 You'll want players to update their gold total by using the "Update Money" macro (see macros.txt). This script handles requests from that. Behind the scenes though, the money data is being stored in a file called "Gold Tracking" (which this script will create if it doesn't exist).
 Something I considered putting in was a way to quickly divide gold amongst all players and update their totals, but that never came to pass. That's another useful function you could add.
+
+
+
+**HP.JS**
+This script put messages into chat whenever a token takes damage/receives healing. If you deduct hp from the HP box (bar3_value) while there's still HP in the temp HP box (bar2_value), it'll automatically correct it for you so you're burning through temp HP first. Some players like to things like "(+#)" in their HP totals when they're trying to find a way to keep it clear that their max HP is currently boosted by spells like Aid, and this file can kind of work around some of the more predictable cases, but isn't perfect.
+This file also handles prompting for concentration checks, will announce when targets are bloodied, and announce when they are dead/unconscious (applying appropriate markers too).
+Will distribute damage dealt across targets with paired Warding Bond markers, will remove the 'armorOfAgathys' marker if it's present and temp HP goes to 0, and will prevent attempts to heal a token if the 'chilltouch' marker is present on it.
+
+
+
+**MACROS.TXT**
+Contains a list of all the macros I used. Read it and add them to your campaign if you're using these scripts. Sorry you have to do it manually.
+
+
+
+**MARKERS.JS**
+TODO...
