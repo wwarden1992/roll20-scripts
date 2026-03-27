@@ -166,3 +166,30 @@ I check my output in the script logs, and see my output there
 
   - 'blindsight', 'truesight', 'tremorsense': you can specify these and give them values of true. Right now, it just checks to see if it's fooled by Mirror Image. It doesn't, for example, check if it's fooled by invisibility, or if a creature with tremorsight can see a flying creature, or anything like that. Possible fixes for later
   
+
+
+**FORTUNETOKENS.JS**
+If you want to play with fortune tokens, this provides a means to do that. Interact with it through the SPEND-FORTUNE-TOKEN and SPEND-MISFORTUNE-TOKEN macros outlined in macros.txt. One thing I'll note, there's a const pretty early on in the file called 'totalTokens', and that's the sum of fortune/misfortune tokens in play at any given time. Traditionally, this should be set to the number of active players in the campaign, so you may want to raise or lower it (probably lower it) according to how many players there are in your campaign.
+The quantity of fortune tokens is maintained in a document called "Fortune Token Tracking" (it gets created if it doesn't currently exist). This is used so the system can "remember" the balance of fortune tokens after a script reset, and also to reset the fortune tokens to the starting balance if it's the next session (i.e. hasn't been updated in 24 hours)
+NOTE: I've tricked myself into thinking the fortune/misfortune tokens aren't working, by spending a misfortune token while looking at a different map. Please note that when you spend a fortune token, it only updates on the map the party is on, and won't update on other maps until that other map becomes the party map.
+
+**GEOMETRY.JS**
+Abandon all hope ye who enter here. This contains the logic for detecting whether enemies fall within a certain AOE range, and it is messy and hard to read. But it works.
+Notes about checking if an enemy exists within an AoE: it assumes that tokens are square, and even the tiniest bit of overlap is enough to declare a hit. If you'd rather the tokens be treated as circles within the grid square(s) they occupy, set the var somewhere within this file called 'allowAnyOverlap' to false.
+The only function in here that you might like to use outside of this library is this one:
+
+**function drawShape(playerid, shape, length, width, type, color, fill)**
+playerid (string, DEPRECATED)- don't worry about putting a value here. The program overwrites it to 'all'
+shape (string) - acceptable values are "cone", "square", "circle", or "line" (which actually draws a rectangle)
+length (number) - Whatever value (in feet) a spell or ability description would give, that's what you want to provide. For a sphere or cylinder with a 20 foot radius, use 20. For a 15 foot cone, use 15. For a 30 foot cube, use 30. And so on
+width (number) - optional for all shapes except "line". Gives the width of a rectangle. If you're drawing this shape for an ability that travels in a line but doesn't have a specified width (e.g. catapult), I just like to use something small for this value like 1
+type (string, optional) - if you're using this to measure something other than an aoe for a spell or ability, put some value here (not 'aoe'). Otherwise, it'll assume the object being drawn is going to be used for spell cast and will make a microadjustment to the line thickness to signal it can be used by a spell. 
+color (string, optional) - gives the color of the line drawing the shape. Use "#RRGGBB" format. If no value is provided, "#123456" is used (looks kinda dark blue)
+fill (string, optional) - fills in the shape with the given color. Use "#RRGGBB" format. If no value is provided, the shape is not filled in (e.g. transparent fill)
+
+
+
+**GOLDTRACKER.JS**
+Puts a gold tracker at the top-left corner of the map, and tracks how much money each player has in a place everyone can easily see. If everyone is tracking their gold in something like a google sheet, maybe this doesn't have a ton of use, and possibly would even be annoying for covering part of the map, but it's nice to have this quick reference available in many cases.
+You'll want players to update their gold total by using the "Update Money" macro (see macros.txt). This script handles requests from that. Behind the scenes though, the money data is being stored in a file called "Gold Tracking" (which this script will create if it doesn't exist).
+Something I considered putting in was a way to quickly divide gold amongst all players and update their totals, but that never came to pass. That's another useful function you could add.
