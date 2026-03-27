@@ -277,3 +277,18 @@ returns an array of markers that exist on the token specified by token. 'token' 
 
 **clearMarker(name, type, badge, bypassMarkerTracking)**
 removes the marker whose name is given by 'type' from the token whose name is given by 'name'. If multiple markers of the same type but with different badges exist on a single token, the 'badge' field can be used to further narrow down which specific marker you want to remove. the 'bypassMarkerTracking' parameter is an optional boolean argument that's mostly there to handle the countdown for concentration, and really shouldn't be used without good reason. Since ticking down on concentration has to destroy and recreate the concentration marker each time, it would also inadvertently destroy any markers associated with it, and recreating those markers (and tracking) is a hassle. So this just lets us bypass that.
+
+
+
+**MYCUSTOMFX.JS**
+Contains some fx definitions I use for certain spell effects. Once the effects are stored in your campaign's fx tool, you don't really need this file, but it's useful when building them from scratch. For information on how to create FX programmatically and display them on the page, see https://wiki.roll20.net/Fx_Tool
+
+
+
+**PUTPLAYERTOKENS.JS**
+A handy little script that automatically creates tokens for all active characters with stats from their character sheets whenever you click that "+ Create Page" button, and places them on the map for you. Relies heavily on characters.js to get information for the tokens, and to get the list of inactive characters who shouldn't get tokens. Also creates a token called "Lair Actions" on the GM layer so that it can get added to initiative order.
+
+
+
+**SPELL7.JS**
+The seventh iteration of my spell execution script. TODO...
