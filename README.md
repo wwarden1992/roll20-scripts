@@ -1,4 +1,4 @@
-This repo contains all the scripts I wrote for the campaign I ran (excluding ad-hoc files made for certain maps or puzzles).
+<img width="799" height="209" alt="image" src="https://github.com/user-attachments/assets/f1870876-2517-43a6-b4a3-6c089bc8f9cd" />This repo contains all the scripts I wrote for the campaign I ran (excluding ad-hoc files made for certain maps or puzzles).
 
 Here is an explanation of all the files I wrote and the important functions if you want to build off it. You will see references to "Roll20 Objects" throughout this document. Please note that this refers to a specific type of structure as outlined in this webpage: https://wiki.roll20.net/API:Objects
 
@@ -186,12 +186,12 @@ The only function in here that you might like to use outside of this library is 
 
 **function drawShape(playerid, shape, length, width, type, color, fill)**
 - playerid (string, DEPRECATED)- don't worry about putting a value here. The program overwrites it to 'all'
-- shape (string) - acceptable values are "cone", "square", "circle", or "line" (which actually draws a rectangle)
-- length (number) - Whatever value (in feet) a spell or ability description would give, that's what you want to provide. For a sphere or cylinder with a 20 foot radius, use 20. For a 15 foot cone, use 15. For a 30 foot cube, use 30. And so on
-- width (number) - optional for all shapes except "line". Gives the width of a rectangle. If you're drawing this shape for an ability that travels in a line but doesn't have a specified width (e.g. catapult), I just like to use something small for this value like 1
-- type (string, optional) - if you're using this to measure something other than an aoe for a spell or ability, put some value here (not 'aoe'). Otherwise, it'll assume the object being drawn is going to be used for spell cast and will make a microadjustment to the line thickness to signal it can be used by a spell. 
-- color (string, optional) - gives the color of the line drawing the shape. Use "#RRGGBB" format. If no value is provided, "#123456" is used (looks kinda dark blue)
-- fill (string, optional) - fills in the shape with the given color. Use "#RRGGBB" format. If no value is provided, the shape is not filled in (e.g. transparent fill)
+- shape (string)- acceptable values are "cone", "square", "circle", or "line" (which actually draws a rectangle)
+- length (number)- Whatever value (in feet) a spell or ability description would give, that's what you want to provide. For a sphere or cylinder with a 20 foot radius, use 20. For a 15 foot cone, use 15. For a 30 foot cube, use 30. And so on
+- width (number)- optional for all shapes except "line". Gives the width of a rectangle. If you're drawing this shape for an ability that travels in a line but doesn't have a specified width (e.g. catapult), I just like to use something small for this value like 1
+- type (string, optional)- if you're using this to measure something other than an aoe for a spell or ability, put some value here (not 'aoe'). Otherwise, it'll assume the object being drawn is going to be used for spell cast and will make a microadjustment to the line thickness to signal it can be used by a spell. 
+- color (string, optional)- gives the color of the line drawing the shape. Use "#RRGGBB" format. If no value is provided, "#123456" is used (looks kinda dark blue)
+- fill (string, optional)- fills in the shape with the given color. Use "#RRGGBB" format. If no value is provided, the shape is not filled in (e.g. transparent fill)
 
 
 
@@ -215,4 +215,65 @@ Contains a list of all the macros I used. Read it and add them to your campaign 
 
 
 **MARKERS.JS**
-TODO...
+The markers.js file uses some of the roll20 default markers (e.g. those whose names are just colors), but by-and-large depends on the addition of your own custom marker set. I use BG3's spell icons as art for a lot of my custom markers, but I don't know if I'm legally allowed to add them here, and I'm waiting for a response from their support team on that. But yeah... add your own custom markers to your own custom marker set, and tie it to the campaign where you're using these scripts.
+Marker definitions are stored in a var within this file called "markers", and the constructor for them looks like this:
+
+**constructor(name, marker, savingThrowStat, startOfTurnCallback, endOfTurnCallback, onRemoval, autoBadge)**
+ - name (string)- the friendly name of the marker, though for some reason I've decided to use camel case for mine. When you do a marker lookup (see macros.txt), the name here gets pretty-printed.
+ - marker (string)- the name of the marker as it appears in the marker set. That is, it matches the name of the file you uploaded (minus the extension)
+ - savingThrowStat (string, optional)- give it a value that's one of the common 3-letter abbreviations for ability scores (e.g. 'wis'). If the marker implies a saving throw that needs to be made on a regular basis, this is the type of saving throw that gets made
+ - startOfTurnCallback (function, optional)- if the marker means something should happen to the marked token on the start of its turn, this function defines that behavior. For example, Searing Smite deals 1d6 to a target on the start of each of its turns. Here is the callback used for it
+ <img width="799" height="209" alt="image" src="https://github.com/user-attachments/assets/1166a00a-e3e1-43c1-b946-8b5f0fe3bf81" />
+
+ - endOfTurnCallback (function, optional)- if the if the marker means something should happen to the marked token on the end of its turn, this function defines that behavior. For example, Tasha's Hideous Laughter has the player make a wisdom save at the end of their turn to end the effect. its endOfTurnCallback looks like this
+ <img width="760" height="222" alt="image" src="https://github.com/user-attachments/assets/37553c21-152b-4cb9-9a7b-a51ba224c3fb" />
+
+ - onRemoval (function, optional)- if you want something to happen when the marker is removed from the token, you can specify it here. For example, when we remove the "Enlarge" marker for Enlarge/Reduce, we want to shrink the token down. This function does that
+ <img width="803" height="181" alt="image" src="https://github.com/user-attachments/assets/21e1dd05-4e2b-43d4-ae3d-9f33ac31b31f" />
+
+ - autoBadge (string, optional)- if you add markers manually, you can't really put a badge on them (at least of 3/27/26). But if you want the same badge to appear every time, you can specify it here, and when the code detects the addition of a marker to a token, it'll apply this badge. For example, the Bardic Inspiration marker has the autoBadge 'Bardic' (because people kept missing the marker). Now I just click this:
+<img width="305" height="239" alt="image" src="https://github.com/user-attachments/assets/04ec1872-f94c-4ea4-b618-9dbfe5ad1a10" />
+And the marker shows this:
+<img width="247" height="210" alt="image" src="https://github.com/user-attachments/assets/bd7d8df3-58a1-4db1-8391-7cad94160934" />
+
+The only thing you really want to add to this file are definitions for new markers, and any sort of callback functions (including onRemoval functions). Marker information is stored in a file called "Marker Tracker", which gets created automatically if one doesn't exist. This serves two functions. First, if you restart the scripts, the sandbox can "remember" what markers exist and what effects are tied to them. Second, it can link the marker to some other entity and let removing the marker remove some other related entity. For example, if you remove the concentration marker on a token that's concentrating on Moonbeam, the moonbeam AoE object goes away. Or if you're concentrating on Haste and drop concentration, the haste marker goes away on the token who had it. I will say, sometimes the marker tracking is a bit finnicky and doesn't work right 100% of the time. Sometimes it seems like old trackers that we don't need anymore persist longer than they're supposed to. If you need to just wipe out all markers and start fresh, type "!clearmarkers" in chat.
+Sometimes an effect might try to put multiple markers on a token at the same time, or might try to add a marker and remove another one at the same time, and trying to make both these changes at the same time can cause them to step on each other/overwrite each other. Consequently, the markers.js class handles programmatic requests to update markers with a queue.
+Aside from that here's some methods that are good to know:
+
+**addTokenStatusMarker(name, type, badge, links, expiration)**
+The 'true' name of the addMarker function, but it's wordy. I'd probably recommend just using "addMarker" for this function going forward.
+
+**addMarker(name, type, badge, links, expiration)**
+- name (string)- the name of the token receiving the marker
+- type (string)- the type of marker being applied to the token. You can use either the friendly name or the literal name of the marker here (first or second arg of the Marker constructor), it'll take either.
+- badge (string, optional)- if you want a badge to appear on the marker, this is where you define it
+- links (object array or single object, optional)- if this marker is connected in some way to some other marker, object, or aura, this provides the id of the Roll20 object. Below defines the fields that go into a link JSON object:
+    - 'id' (string)- value which is the id of the roll20 object which is logically connected to this marker. This can be the thing a connected marker is on, a summoned token, or a token that gets an aura because of this marker
+    - 'isSummon' (boolean, optional)- if the roll20 object linked to this marker is a summon of some kind (be it a creature like a mephit, or an AoE hazard like a Cloud of Daggers), set this to true
+    - 'isAura1' (boolean, optional)- if the thing linked to this marker is an aura on the token, and is Aura 1, set this to true
+    - 'isAura2' (boolean, optional)- if the thing linked to this marker is an aura on the token, and is Aura 2, set this to true
+    - 'marker' (string, optional)- the name of the marker that's logically tied to this marker. For example, if typing a haste marker to a concentration marker, the value for this thing is 'haste'
+- expiration (object, optional)- lets you specify a condition for the marker to expire automatically, so you don't have to remove it manually. For example, if you hit a target with a guiding bolt, we put a marker on it indicating that the next attack against it has advantage. We give it a condition to expire at the end of the caster's next turn if it still exists by then. Expiration times are regulated through turns.js instead of markers.js. Below defines the fields that go into an expiration JSON object:
+    - 'id' (string) - the id of the Roll20 object the duration is defined in reference to
+    - 'duration' (string) - the condition upon which the marker expires relative to the object specified by the 'id' field. Accepted values are 'startOfTurn' (start of id's turn), 'endOfTurn' (end of id's turn), and 'endOfNextTurn' (end of id's next turn).
+  
+**concentrate(name, badge, duration, links)**
+Basically adds a concentration marker to a token. The name, badge, and links args work the same as they do for addMarker. For the badge, you'll probably want to put the name of the spell you're concentrating on. The 'duration' field is the number of turns left in concentration, and it ticks down at the end of of the concentrater's turns (disappearing when it hits 0). It gets appended to the badge with a '/' separating it from the spell's name (e.g. "Haste/10")
+
+**getBadge(name, marker)**
+Gets the badge on a marker. 'name' is the name of the token in question, 'marker' is the type of marker (can be the friendly name or the literal name)
+
+**hasMarker(name, marker, badge)**
+checks to see if the token with the name given by the name argument has the marker given by the marker argument. 'badge' is an optional string argument if you want to check if the marker has that specific badge.
+
+**isConcentrating(name)**
+checks if the token whose name is given by 'name' is concentrating
+
+**dropConcentration(name)**
+drops concentration for the token whose name is given by 'name' (if it's concentrating)
+
+**getMarkers(token)**
+returns an array of markers that exist on the token specified by token. 'token' can either be the Roll20 token object, or it can be the name of the token.
+
+**clearMarker(name, type, badge, bypassMarkerTracking)**
+removes the marker whose name is given by 'type' from the token whose name is given by 'name'. If multiple markers of the same type but with different badges exist on a single token, the 'badge' field can be used to further narrow down which specific marker you want to remove. the 'bypassMarkerTracking' parameter is an optional boolean argument that's mostly there to handle the countdown for concentration, and really shouldn't be used without good reason. Since ticking down on concentration has to destroy and recreate the concentration marker each time, it would also inadvertently destroy any markers associated with it, and recreating those markers (and tracking) is a hassle. So this just lets us bypass that.
