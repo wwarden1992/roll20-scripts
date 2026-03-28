@@ -376,6 +376,8 @@ NOTE: I think this file might need some more null-safing. I swear sometimes ther
 ## **UTIL.JS**
 This file contains a bunch of utility functions that are helpful when writing your own additions to the code. It also serves as the entry point for a lot of macros of general purpose, and is also where I've put a lot of ad-hoc functionality (so if you find yourself having to sift through that to make sense of this file... my bad). Below are descriptions of the most useful functions within this file:
 
+### Player ID helpers
+
 **getGM()**- returns the Roll20 Object ID of the GM.
 
 **getPlayerID(player)**- returns the Roll20 Object ID of the player whose name you provided
@@ -383,6 +385,8 @@ This file contains a bunch of utility functions that are helpful when writing yo
 
 **getPlayerName(playerid)**- takes the Roll20 Object ID of the player, and spits out the friendly name. It's getPlayerID in reverse
 - playerid (string)- the Roll20 Object ID of the player
+
+### Map helpers
 
 **getPlayerPage()**- gets the Roll20 Object ID of the page (map) the party is currently assigned to.
 
@@ -395,6 +399,8 @@ This file contains a bunch of utility functions that are helpful when writing yo
 - playerid (string)- the Roll20 Object ID of the player who is being moved to view another map.
 - page (string)- the friendly name or Roll20 Object ID of the map you want the player to view (it takes either)
 
+### Token helpers
+
 **refreshTokens()**- makes sure the scripts have the most up-to-date information of the tokens on the map. refreshTokens() stores data about tokens on the map the party is assigned to in a var called **'tokens'**, data about tokens corresponding to players on the map the party is assigned to in **'playerTokens'**, and information about player tokens across all maps in **'playerTokensAcrossMaps'**. Any unnamed token is also given a default name corresponding to its own id whenever this is called
 
 **getGMNotes(token)**- returns the gmnotes on a token. Can be useful if you're storing information you want to use programmatically in the token's GM notes
@@ -405,10 +411,81 @@ This file contains a bunch of utility functions that are helpful when writing yo
 - fxType (string)- the type of fx you want to appear on the token. Must be either a simple name for one of roll20's baked-in FX types, or must be the ID of your custom FX object
 - delay (number, optional)- if you want to delay the FX from appearing by a certain amount of time, you can define a delay here in milliseconds
 
-**rollCharacterSave(playerid, saveType, adv)**- if your players are okay with relinquishing control of the dice to you when it comes to rolling their own saves, you can use this function to do so programmatically.
+**rollCharacterSave(playerid, saveType, adv)**- if your players are okay with relinquishing control of the dice to you when it comes to rolling their own saves, you can use this function to do so programmatically. If there's a paladin in the party who can provide a bonus to saving throws with their aura, you can add that in by updating the line that says 'let paladin = null;' to instead retrieve info on the paladin
 - playerid (string)- the Roll20 Object ID of the player whose character is rolling a save
 - saveType (string)- the ability score used for rolling the save. Can be the full name (e.g. 'strength') or can be the 3-letter abbreviation (e.g. 'int')
 - adv (string, optional)- put any string starting with 'a' to roll with advantage, or any string starting with 'd' to roll with disadvantage.
 
-*TODO...*
+**pingToken(tokenName, playerid)**- pings a token on the map and moves the camera to focus on it
+- tokenName (string or object)- the token's name or the token itself
+- playerid (string, optional)- the ID of a player requesting the ping. This is used to safeguard players from pinging enemy tokens that might still be hidden. If you just want to ping a token regardless, the value you provide for this arg can just be getGM()
+
+**getToken(name)**- takes a token name and returns the token on the current page (map) that has that name
+- name (string or object)- the name of the token, or the object itself (ability to take the object itself is mostly there as a safeguard)
+
+**getTokenId(name)**- takes a token name and returns the Roll20 Object ID of the token on the current page (map) that has that name
+- name (string or object)- the name of the token, or the object itself
+
+**setPosition(t, x, y)**- moves a token to a specified set of coordinates
+- t (string or object)- the name of the token you want to move, or the token itself
+- x (number) - the x-coordinate of the position you want the token to go
+- y (number) - the y-coordinate of the position you want the token to go
+
+### Chat helpers
+
+**spoof(player, msg)**- send a message programmatically under the guise of another player
+- player (string)- the name you want the message to appear to be from
+- msg (string)- the message to be printed in chat
+
+**whisper(player, msg)**- whisper a message to a player (for their eyes only)
+- player (string)- the name of the player being whispered to.
+- msg (string)- the message being whispered
+
+**echo(text)**- prints the contents of 'text' into chat
+- text (string)- the message to be displayed in chat
+
+**emphasis(text)**- prints the contents of 'text' into chat, but bolded, italicized, and orange for emphasis
+- text (string)- the message to be displayed in chat
+
+### Sound helpers
+
+**playSound(title, delay, loop, volume)**- plays the sound at the requested volume, loops it if you want
+- title (string)- the name of the sound you want to be played. Must be imported into your roll20 campaign
+- delay (number, optional)- delay playing the sound by this number of milliseconds
+- loop (boolean, optional)- if true, will play the sound on loop. Assumes false
+- volume (number, optional)- the volume to play the sound at, on a scale from 0 to 100. Defaults to 50
+
+**stopSound(title, delay)**- stops a sound from playing
+- title (string)- the name of the sound currently playing
+- delay (number, optional)- delay stopping the sound by this many milliseconds
+
+### Text + Logging Helpers
+Note: You'll see messages in here that refer to a *logging document*. At one point, I would have API Log messages written to a document called "API Logging", but the write operations ended up taking so long that the system would get too bogged down by it. If you need to have log messages written to the logging document, find the code around line 80 that's commented out with the comment "DISABLED AS IT BOGS THE API DOWN TOO MUCH", and un-comment it.
+
+**prettyPrint(str)**- takes a string written in camel case (e.g. "stringInCamelCase") and prints it in title case (e.g. "String In Title Case")
+- str (string)- the string to be pretty-printed
+
+**debugging(msg)**- this would be perhaps considered 'verbose' logging. This writes messages to the API Sandbox logs if the debug var is set to true, and to a logging document. In the log document, messages are preceded by 'DEBUG:'. 'debug' is false by default. To set it to true, type '!debug on' in chat. To turn it off again, restart the sandbox or type '!debug off'
+- msg (string)- the log message to write
+
+**inform(msg)**- writes info level messages to the API sandbox, and to a logging document if configured. In the log document, messages are preceded by 'INFORM:'
+- msg (string)- the log message to write
+
+**trace(msg)**- writes trace level messages to the API sandbox (think more like milestones), and to a logging document if configured. In the log document, messages are preceded by 'TRACE:'
+- msg (string)- the log message to write
+
+**warn(msg)**- writes warning level messages to the API sandbox, and to a logging document if configured. In the log document, messages are preceded by 'ALERT:'
+- msg (string)- the log message to write
+
+### ROLL DICE
+
+**rollDice(desc, dice, advantage)**- rolls dice for you, parsing "XdY+Z" syntax. Can process "kh#" and "kl#" in roll commands
+- desc (string, DEPRECATED)- this argument doesn't do anything anymore
+- dice (string)- the dice to be rolled in "XdY+Z" format
+- advantage (string, optional)- a string that begins with 'a' will be interpreted as advantage (keep only the highest die), and a string that begins in 'd' will be interpreted as disadvantage (keep only the lowest die).
+
+### Miscellaneous Helpers
+
+**sleepMS(delayMs)/delayMS(delayMs)**- helper function to cause a delay before doing something. Must be preceded by 'await' when invoking it for it to work properly.
+- delayMs (number)- the amount of delay you want (in milliseconds)
 
