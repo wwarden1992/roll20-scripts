@@ -376,4 +376,39 @@ NOTE: I think this file might need some more null-safing. I swear sometimes ther
 ## **UTIL.JS**
 This file contains a bunch of utility functions that are helpful when writing your own additions to the code. It also serves as the entry point for a lot of macros of general purpose, and is also where I've put a lot of ad-hoc functionality (so if you find yourself having to sift through that to make sense of this file... my bad). Below are descriptions of the most useful functions within this file:
 
+**getGM()**- returns the Roll20 Object ID of the GM.
+
+**getPlayerID(player)**- returns the Roll20 Object ID of the player whose name you provided
+- player (string)- the name of the player as you see it in Roll20
+
+**getPlayerName(playerid)**- takes the Roll20 Object ID of the player, and spits out the friendly name. It's getPlayerID in reverse
+- playerid (string)- the Roll20 Object ID of the player
+
+**getPlayerPage()**- gets the Roll20 Object ID of the page (map) the party is currently assigned to.
+
+**getPlayerPageName()**- gets the friendly name of the page (map) the party is currently assigned to.
+
+**getMapID(name)**- takes the friendly name of a page (map) and spits out the Roll20 object ID of that page (map) if it exists
+- name (string)- the friendly name of the page
+
+**changePlayerPage(playerid, page)**- moves a player from one page (map) to another, in case you have to split the party
+- playerid (string)- the Roll20 Object ID of the player who is being moved to view another map.
+- page (string)- the friendly name or Roll20 Object ID of the map you want the player to view (it takes either)
+
+**refreshTokens()**- makes sure the scripts have the most up-to-date information of the tokens on the map. refreshTokens() stores data about tokens on the map the party is assigned to in a var called **'tokens'**, data about tokens corresponding to players on the map the party is assigned to in **'playerTokens'**, and information about player tokens across all maps in **'playerTokensAcrossMaps'**. Any unnamed token is also given a default name corresponding to its own id whenever this is called
+
+**getGMNotes(token)**- returns the gmnotes on a token. Can be useful if you're storing information you want to use programmatically in the token's GM notes
+- token (string or object)- the name of the token, or the token object itself
+
+**effectOnToken(targetName, fxType, delay)**- if you want to make an FX appear on a token (one which doesn't move from point A to point B), you can use this method
+- targetName (string)- the name of the token on which the fx appears
+- fxType (string)- the type of fx you want to appear on the token. Must be either a simple name for one of roll20's baked-in FX types, or must be the ID of your custom FX object
+- delay (number, optional)- if you want to delay the FX from appearing by a certain amount of time, you can define a delay here in milliseconds
+
+**rollCharacterSave(playerid, saveType, adv)**- if your players are okay with relinquishing control of the dice to you when it comes to rolling their own saves, you can use this function to do so programmatically.
+- playerid (string)- the Roll20 Object ID of the player whose character is rolling a save
+- saveType (string)- the ability score used for rolling the save. Can be the full name (e.g. 'strength') or can be the 3-letter abbreviation (e.g. 'int')
+- adv (string, optional)- put any string starting with 'a' to roll with advantage, or any string starting with 'd' to roll with disadvantage.
+
 *TODO...*
+
