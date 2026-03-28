@@ -489,3 +489,5 @@ Note: You'll see messages in here that refer to a *logging document*. At one poi
 **sleepMS(delayMs)/delayMS(delayMs)**- helper function to cause a delay before doing something. Must be preceded by 'await' when invoking it for it to work properly.
 - delayMs (number)- the amount of delay you want (in milliseconds)
 
+## WEAPON.JS
+This processes the Attack-This-Token macro (see macros.txt). Handles applying damage to tokens, factors resistances, immunities, and vulnerabilities, and plays sound effect
