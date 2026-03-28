@@ -616,15 +616,19 @@ async function rollCharacterSave(playerid, saveType, adv) {
     }
     let saveModifier = await getAttribute(character, saveType + '_save_bonus');
     inform(character + ' has a ' + (saveModifier >= 0 ? '+' : '') + saveModifier + ' modifier on ' + saveType + ' saves');
-    //check if within King's Aura of Protection
+    //check if within Paladin aura
     let token = getToken(character);
-    let king = getToken('King');
-    let inAura = false;
-    let distance = calculateObjectDistance(token, king) * 5 / 70;
-    if (token != null && king != null && distance < 14.15) { //a little bigger than 10 * sqrt(2)
-        inAura = true;
-        saveModifier += 5;
-    }
+    let paladin = null; //can specify a getToken("paladin's name"); here to apply aura effect
+	let inAura = false;	
+	let auraBoost = 0;
+	if (paladin != null) {
+	    let distance = calculateObjectDistance(token, paladin) * 5 / 70;
+	    if (token != null && paladin != null && distance < 14.15) { //a little bigger than 10 * sqrt(2)
+	        inAura = true;
+			auraBoost = Math.max(1, await getAttribute(paladin, 'charisma_mod'));
+	        saveModifier += auraBoost;
+	    }
+	}
     let advantageStatus = '';
     if (adv == 'Advantage') advantageStatus = ' at advantage';
     else if (adv == 'Disadvantage') advantageStatus = ' at disadvantage';
@@ -632,7 +636,7 @@ async function rollCharacterSave(playerid, saveType, adv) {
     let isCrit = roll['d20'] == 20;
     let isCritFail = roll['d20'] == 1;
     roll = roll['total'];
-    echo(character + ' rolled a ' + roll + ' on their ' + saveType[0].toUpperCase() + saveType.slice(1) +  ' save' + advantageStatus + (inAura ? ' (including the +5 from King\'s aura)' : '') + (isCrit ? ' CRITICAL SUCCESS!' : '') + (isCritFail ? ' CRIT FAIL!' : ''));
+    echo(character + ' rolled a ' + roll + ' on their ' + saveType[0].toUpperCase() + saveType.slice(1) +  ' save' + advantageStatus + (inAura ? ' (including the ' + auraBoost + ' from ' + paladin.get('name') + '\'s aura)' : '') + (isCrit ? ' CRITICAL SUCCESS!' : '') + (isCritFail ? ' CRIT FAIL!' : ''));
 }
 
 async function pingToken(tokenName, playerid) {
