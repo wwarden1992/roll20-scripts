@@ -1,18 +1,15 @@
-<img width="799" height="209" alt="image" src="https://github.com/user-attachments/assets/f1870876-2517-43a6-b4a3-6c089bc8f9cd" />This repo contains all the scripts I wrote for the campaign I ran (excluding ad-hoc files made for certain maps or puzzles).
+This repo contains all the scripts I wrote for the campaign I ran (excluding ad-hoc files made for certain maps or puzzles).
 
 Here is an explanation of all the files I wrote and the important functions if you want to build off it. You will see references to "Roll20 Objects" throughout this document. Please note that this refers to a specific type of structure as outlined in this webpage: https://wiki.roll20.net/API:Objects
 
-GENERAL CONSIDERATIONS:
+## GENERAL CONSIDERATIONS:
 I use bar3_value (the circle that's red by default) for HP, bar2_value (the circle that's blue by default) for temp HP, and bar1_value (the circle that's green by default) for AC. If you have bar4_value enabled in your settings (the circle that's yellow be default), I use that for speed.
 If you don't use the same bars(/circles) for your values, then your mileage with these scripts will vary wildly.
 
-
-
-**AOEHAZARDS.JS**
+## **AOEHAZARDS.JS**
 This file allows you to create AOE hazards in your own JS files, specifying shapes, sizes, trigger conditions, and specific effects for them. Spells that generate AOE hazards (e.g. Grease, Moonbeam, etc.) make use of the methods in this class.
 Hazard information gets stored as JSON in a document called "Hazard Tracker", which you can access from the "Journal" tab on the righthand menu in your Roll20 campaign. If this document does not exist, it will be created automatically as soon as we need to store hazard information. This file serves as "memory" so the AoE hazards will continue to be observed by the scripts following a restart (often due to inactivity, a crash, or you're pushing your own changes). I think it's still a bit finnicky at times, but it's pretty good about updating records when AoEs are created, moved, or destroyed.
 AoE hazard sources are either a specific token (such as in the case of a moonbeam or a cloud of daggers), an aura around a token (such as in the case of spirit guardians), or a path object (such as what we use for fog cloud). To create your own AoE hazard programmatically, it is STRONGLY recommended you use the following method:
-
 
 **createAoeHazard(obj, shape, triggers, params, callback, exitCallback, storeInMemory)**
 - obj (Roll20 Object)- The Roll20 Object that is the source of the AoE. This can be a graphic, or a pathv2
@@ -34,17 +31,11 @@ AoE hazard sources are either a specific token (such as in the case of a moonbea
 - exitCallback (function, optional)- A function that gets called whenever a creature exits the AoE. Most AoEs do not need an exitCallback, but for some exceptions like Silence where we would want to remove a marker denoting it's silenced/deafened status, it's helpful.
 - storeInMemory (boolean, optional)- if you don't want the AoE hazard to be remembered by the Hazard Tracker doc, set this to false. Otherwise it's assumed to be true. Useful to set false when you've scripted traps into your map, and you don't want to create duplicates each time you restart the scripts.
 
-
-
-
-**CHANGEMAP.JS**
+## **CHANGEMAP.JS**
 Provides the ability for players to manually change the map they view. No macro has been provided, but anyone can type "!changemap (name of map)", and as long as a map of that name exists, the person who typed it will view that map. When that player is done, they can type "!changemap Rejoin Group" and they will be moved back to the map that the party is on.
 It probably would not be too great an effort to write a function with another command where you print a list of buttons in chat so you could provide a list of specific map options (and 'Rejoin Group') for players to choose from. If someone wants to add a function like that and a placeholder array for you to name maps (or better yet, read from a campaign document with JSON so you can configure without having to restart scripts), that would be awesome
 
-
-
-
-**CHARACTERS.JS**
+## **CHARACTERS.JS**
 This contains methods for parsing information from character sheets in the campaign. 2024 character sheets here might perhaps be more appropriately labeled Jumpgate character sheets? Whatever the new style of character sheets is, it's a heck of a lot harder to parse out information from them now, so a lot of the methods are kind of hard to decipher. Honestly, a lot of the 2024 stuff probably isn't perfect either! 
 Things you should know as a user:
 - There's a var called "inactiveCharacterList". If there's any character sheets in the campaign for characters that are inactive, listing them here helps filter them out in functions where we only care about the active characters. For example, when we autopopulate a map with character tokens, we'll ignore characters from the inactiveCharacterList. Similarly, when we're trying to do gold tracking, we won't track gold for inactive characters.
@@ -62,10 +53,7 @@ In general, if you're trying to make new stuff, the most useful function to know
   - other: "hp", "ac", "pb", "spellcasting_ability", "spell_save_dc", "spell_attack_bonus", "level"
 - valueType (string, optional) - you can provide a value of "max" for this if you want to get an HP max instead of current HP from the character sheet.
 
-
-
-
-**ENEMY.JS**
+## **ENEMY.JS**
 This handles a lot of the automation for enemies built from the data provided by enemytemplates.js. Whenever you drag and drop a token onto the map, if the image source for that token matches something in enemytemplates.js, this function will automatically create an enemy entity for that object and assign it all the stats you'd normally want to see on that enemy.
 If you cast a spell that requires a saving throw and the enemy is hit by it, it'll automatically roll the saving throw for you, factoring in any sort of advantage, disadvantage, auto-succeeds, auto-fails, bonuses, penalties, etc. based on markers on the token, or intrinsic properties of the enemy as defined in enemytemplates.js
 It will make concentration checks for you when the enemy is damaged (again, assuming data is provided in enemytemplates.js), and can handle rolling initiative for all your enemies at once.
@@ -82,9 +70,7 @@ There's also some rudimentary behavior functions if you want to program your ene
  - overrideSecondaryDamageType (string, optional)- same as overrideDamageType, but if your attack does 2 different damage types, this is how you override the secondary one
  - callbackFn (function, optional)- if hitting the target with an attack applies some kind of effect to the target (e.g. maybe you need to mark the target, or the target has to make a saving throw), you can add a function name as an argument here to make the program prompt the player to do whatever's necessary. You don't need to worry about prompting concentration checks this way; hp.js auto-handles all concentration check prompts by reading hp changes.
 
-
-
-**ENEMYTEMPLATES.JS**
+## **ENEMYTEMPLATES.JS**
 This is where you define stats and stuff for the enemies. It's all stored in one large JSON object. If you're not much of a coder but want to reap the benefits of a lot of automation for new enemy types, you'll need to understand how this works. Pretty much start by going to the bottom of the document, and paste this in after the final existing enemy template, but before the final '}':
 ,  'NEW_ENEMY': {
         'name': '',
@@ -171,16 +157,12 @@ I check my output in the script logs, and see my output there
 
   - 'blindsight', 'truesight', 'tremorsense': you can specify these and give them values of true. Right now, it just checks to see if it's fooled by Mirror Image. It doesn't, for example, check if it's fooled by invisibility, or if a creature with tremorsight can see a flying creature, or anything like that. Possible fixes for later
   
-
-
-**FORTUNETOKENS.JS**
+## **FORTUNETOKENS.JS**
 If you want to play with fortune tokens, this provides a means to do that. Interact with it through the SPEND-FORTUNE-TOKEN and SPEND-MISFORTUNE-TOKEN macros outlined in macros.txt. One thing I'll note, there's a const pretty early on in the file called 'totalTokens', and that's the sum of fortune/misfortune tokens in play at any given time. Traditionally, this should be set to the number of active players in the campaign, so you may want to raise or lower it (probably lower it) according to how many players there are in your campaign.
 The quantity of fortune tokens is maintained in a document called "Fortune Token Tracking" (it gets created if it doesn't currently exist). This is used so the system can "remember" the balance of fortune tokens after a script reset, and also to reset the fortune tokens to the starting balance if it's the next session (i.e. hasn't been updated in 24 hours)
 NOTE: I've tricked myself into thinking the fortune/misfortune tokens aren't working, by spending a misfortune token while looking at a different map. Please note that when you spend a fortune token, it only updates on the map the party is on, and won't update on other maps until that other map becomes the party map.
 
-
-
-**GEOMETRY.JS**
+## **GEOMETRY.JS**
 Abandon all hope ye who enter here. This contains the logic for detecting whether enemies fall within a certain AOE range, and it is messy and hard to read. But it works.
 Notes about checking if an enemy exists within an AoE: it assumes that tokens are square, and even the tiniest bit of overlap is enough to declare a hit. If you'd rather the tokens be treated as circles within the grid square(s) they occupy, set the var somewhere within this file called 'allowAnyOverlap' to false.
 The functions within here that you might want to use elsewhere are thankfully few:
@@ -215,28 +197,20 @@ The functions within here that you might want to use elsewhere are thankfully fe
   - x1, x2, x3, x4 (numbers)- the x-coordinates of the corners of the rectangle
   - y1, y2, y3, y4 (numbers)- the y-coordinates of the corners of the rectangle. x1 goes with y1, x2 goes with y2, and so on...
  
-
-
-**GOLDTRACKER.JS**
+## **GOLDTRACKER.JS**
 Puts a gold tracker at the top-left corner of the map, and tracks how much money each player has in a place everyone can easily see. If everyone is tracking their gold in something like a google sheet, maybe this doesn't have a ton of use, and possibly would even be annoying for covering part of the map, but it's nice to have this quick reference available in many cases.
 You'll want players to update their gold total by using the "Update Money" macro (see macros.txt). This script handles requests from that. Behind the scenes though, the money data is being stored in a file called "Gold Tracking" (which this script will create if it doesn't exist).
 Something I considered putting in was a way to quickly divide gold amongst all players and update their totals, but that never came to pass. That's another useful function you could add.
 
-
-
-**HP.JS**
+## **HP.JS**
 This script put messages into chat whenever a token takes damage/receives healing. If you deduct hp from the HP box (bar3_value) while there's still HP in the temp HP box (bar2_value), it'll automatically correct it for you so you're burning through temp HP first. Some players like to things like "(+#)" in their HP totals when they're trying to find a way to keep it clear that their max HP is currently boosted by spells like Aid, and this file can kind of work around some of the more predictable cases, but isn't perfect.
 This file also handles prompting for concentration checks, will announce when targets are bloodied, and announce when they are dead/unconscious (applying appropriate markers too).
 Will distribute damage dealt across targets with paired Warding Bond markers, will remove the 'armorOfAgathys' marker if it's present and temp HP goes to 0, and will prevent attempts to heal a token if the 'chilltouch' marker is present on it.
 
-
-
-**MACROS.TXT**
+## **MACROS.TXT**
 Contains a list of all the macros I used. Read it and add them to your campaign if you're using these scripts. Sorry you have to do it manually.
 
-
-
-**MARKERS.JS**
+## **MARKERS.JS**
 The markers.js file uses some of the roll20 default markers (e.g. those whose names are just colors), but by-and-large depends on the addition of your own custom marker set. I use BG3's spell icons as art for a lot of my custom markers, but I don't know if I'm legally allowed to add them here, and I'm waiting for a response from their support team on that. But yeah... add your own custom markers to your own custom marker set, and tie it to the campaign where you're using these scripts.
 Marker definitions are stored in a var within this file called "markers", and the constructor for them looks like this:
 
@@ -300,19 +274,13 @@ returns an array of markers that exist on the token specified by token. 'token' 
 **clearMarker(name, type, badge, bypassMarkerTracking)**
 removes the marker whose name is given by 'type' from the token whose name is given by 'name'. If multiple markers of the same type but with different badges exist on a single token, the 'badge' field can be used to further narrow down which specific marker you want to remove. the 'bypassMarkerTracking' parameter is an optional boolean argument that's mostly there to handle the countdown for concentration, and really shouldn't be used without good reason. Since ticking down on concentration has to destroy and recreate the concentration marker each time, it would also inadvertently destroy any markers associated with it, and recreating those markers (and tracking) is a hassle. So this just lets us bypass that.
 
-
-
-**MYCUSTOMFX.JS**
+## **MYCUSTOMFX.JS**
 Contains some fx definitions I use for certain spell effects. Once the effects are stored in your campaign's fx tool, you don't really need this file, but it's useful when building them from scratch. For information on how to create FX programmatically and display them on the page, see https://wiki.roll20.net/Fx_Tool
 
-
-
-**PUTPLAYERTOKENS.JS**
+## **PUTPLAYERTOKENS.JS**
 A handy little script that automatically creates tokens for all active characters with stats from their character sheets whenever you click that "+ Create Page" button, and places them on the map for you. Relies heavily on characters.js to get information for the tokens, and to get the list of inactive characters who shouldn't get tokens. Also creates a token called "Lair Actions" on the GM layer so that it can get added to initiative order.
 
-
-
-**SPELL7.JS**
+## **SPELL7.JS**
 The seventh iteration of my spell execution script. The script has a var called 'spellbook', where we define a list of spell objects. The spell constructor looks like this:
 **constructor(name, minLevel, callback, soundFx)**
 - name (string)- the name of the spell, without spaces. The name should match a key in spelltemplates.js that contains the list of params you need in order to cast that spell (see spelltemplates.js for more information)
@@ -393,10 +361,79 @@ Here's an example where this function is used for creating a mage hand
 Here's an example using hellish rebuke
 <img width="789" height="152" alt="image" src="https://github.com/user-attachments/assets/df2a7915-2971-40da-b055-3e0dcb2b1cdc" />
 
-
-
-**SPELLTEMPLATES.JS**
+## **SPELLTEMPLATES.JS**
 Here you list the information that the user will need to provide in order for your spell functions to work. In order to make the prompting all nice and neat, it follows Roll20 Roll Query syntax (see https://wiki.roll20.net/Roll_Query), with a key modification. When you need to collect multiple params whose names are going to be similar, you can use square brackets ([]) to inject math into it and allow it to repeat. For example, the spell Bless lets you bless a number of targets equal to 2 + the level cast (3 at level 1, 4 at level 2, 5 at level 3, and so on). Rather than just having separate templates for bless at each spell level, I wrote this:
 <img width="402" height="18" alt="image" src="https://github.com/user-attachments/assets/ea5e0e15-c8d6-4c8a-a31c-9bd454d17aa9" />
 and spell7.js will know that I need to collect (2 + the level cast) ally values (storing them as ally1, ally2, ally3...)
 
+## **EXAMPLE SPELL CREATION**
+Let's suppose I wanted to add the second level spell "Mind Spike"
+<img width="909" height="522" alt="image" src="https://github.com/user-attachments/assets/d0504169-4cf9-4da6-9160-85a2ff6d5c1a" />
+Based on the description, the spell has the following properties: A wisdom saving throw is involved, damage is involved, half damage is done on-save, the spell requires concentration (up to an hour, which is 600 turns), and the target has some kind of mechanical effect applied to it for which we may want a marker.
+Of these properties, only two will require input from a user (the rest can be inferred from the character sheet): the target of the spell, and the damage dealt.
+Thus, in spelltemplates.js, we'll add the key "MindSpike", and add the Roll Query syntax (and if you're wondering about the "\&#64;", it's for reasons described in the 'HTML Entities' section of the Roll20 Roll Query syntax wiki, see https://wiki.roll20.net/Roll_Query)
+<img width="1357" height="579" alt="image" src="https://github.com/user-attachments/assets/5c0dd392-8d00-4c4f-bf9a-391e7c1b3d4c" />
+Then in spell7.js, I add my spell to the spellbook
+<img width="935" height="552" alt="image" src="https://github.com/user-attachments/assets/042d25de-f9e5-4800-b81d-530f4ca8f220" />
+The arguments in order mean: 
+- "MindSpike" is the key I want to look for in spelltemplates.js.
+- 2 is the lowest level this spell can be cast at.
+- The function that describes how this spell operates will be called 'mindSpike'.
+- I will provide a sound file named 'mindspike' to the campaign that I want to play when this spell is cast
+Now I actually write the 'mindSpike' function in spell7.js, so I'll start by writing this:
+
+`function mindSpike(params) {
+}`
+
+Just because of the way I've set up spell7, "params" will already have the spell save DC, it'll have the level you're casting it at, and it'll have your selection of target and damage. But you need to specify the damage type, and the ability score for the saving throw. We also want to specify that even on a successful save, you take half damage. So we'll add those in:
+
+`function mindSpike(params) {
+  params.dmgType='psychic';
+  params.stat='wis';
+  params.onSave=halfDamage;
+}`
+
+I like to give players the option to leave damage blank, and have the spell autoroll damage for them. To do that, I'll use my 'autorollIfNeeded' function. The damage of the spell normally is 3d8, but increases by 1d8 per spell level. So I can express the damage dice as (level+1)d8. Passing that into my function, it'll now look like this:
+
+`function mindSpike(params) {
+  params.dmgType='psychic';
+  params.stat='wis';
+  params.onSave=halfDamage;  
+  params.dmg=autorollIfNeeded(params, (1+Number(params.level)) + 'd8', 'dmg');  
+}`
+
+That says: "check my params for a param called 'dmg'. If it's there, great. If not, roll a number of d8 equal to 1 plus my spell level, and return it".
+Now we need to prompt the target to make a saving throw. To do that' we'll use the "rollTokenSave" function, and store the result as params.saved. That way, when we later call 'damageToken', it'll know exactly what happened with the results.
+
+`function mindSpike(params) {
+  params.dmgType='psychic';
+  params.stat='wis';
+  params.onSave=halfDamage;  
+  params.dmg=autorollIfNeeded(params, (1+Number(params.level)) + 'd8', 'dmg');  
+  params.saved=rollTokenSave(params.target, params);  
+}`
+
+
+With that info gathered, we can just say "damageToken(params.target, params);", and the damage gets applied to the target when we cast the spell:
+
+`function mindSpike(params) {
+  params.dmgType='psychic';
+  params.stat='wis';
+  params.onSave=halfDamage;  
+  params.dmg=autorollIfNeeded(params, (1+Number(params.level)) + 'd8', 'dmg');  
+  params.saved=rollTokenSave(params.target, params);    
+  damageToken(params.target, params);  
+}`
+
+But there's a slight problem that's inherent to javascript. Sometimes when you call functions, it'll just plow on ahead to the next line without waiting for the thing you're doing to finish up. This is true of autorollIfNeeded, rollTokenSave, and damageToken. To put it another way, if we're waiting for a roll to complete in autorollIfNeeded and rollTokenSave, we might try to damage the token before we know if the targed succeeded on its save or how much damage was rolled! That would be bad! The way we get around that is to put the word 'await' before we call autorollIfNeeded and rollTokenSave. This makes it so that you have to wait until the operation on that line succeeds before you go to the next one. But 'await' can only be used by asynchronous functions, so we have to put 'async' before the word 'function' in our definition, or else it makes the sandbox unhappy:
+
+`async function mindSpike(params) {
+  params.dmgType='psychic';
+  params.stat='wis';
+  params.onSave=halfDamage;  
+  params.dmg= await autorollIfNeeded(params, (1+Number(params.level)) + 'd8', 'dmg');  
+  params.saved= await rollTokenSave(params.target, params);    
+  damageToken(params.target, params);  
+}`
+
+Next we want to put a marker on the caster to say they're concentrating on this, and we also want to put a marker on the target if they fail the save.
